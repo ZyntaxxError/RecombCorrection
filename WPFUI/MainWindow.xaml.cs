@@ -39,7 +39,7 @@ namespace WPFUI
         public MainWindow()
         {
             InitializeComponent();
-           // DebugDefault10FFFData();                        //                    FOR DEBUGGING   Loads data for 10FFF
+           DebugDefault10FFFData();                        //                    FOR DEBUGGING   Loads data for 10FFF
         }
         
         #region ButtonClick Methods Open files
@@ -47,10 +47,10 @@ namespace WPFUI
         private void ButtonOpenOFFileClick(object sender, RoutedEventArgs e)
         {
             // Create OpenFileDialog 
-            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog
+            Microsoft.Win32.OpenFileDialog dlg = new OpenFileDialog
             {
-                DefaultExt = ".asc",
-                Filter = "Ascii files (*.asc) |*.asc| Text files(*.txt) |*.txt"
+                DefaultExt = ".txt",
+                Filter = "Text files(*.txt) |*.txt|Ascii files (*.asc) |*.asc"
             };
             Nullable<bool> result = dlg.ShowDialog();   // Display OpenFileDialog by calling ShowDialog method
             if (result == true)  // Get the selected file name and display in a TextBox and read data to objectlist OF
