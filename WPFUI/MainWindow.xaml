@@ -1,0 +1,78 @@
+﻿<Window x:Class="WPFUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WPFUI"
+        mc:Ignorable="d"
+        Title="EditAcceptAscii" Height="450" Width="800" WindowState="Maximized">
+    <Grid>
+
+        <Grid.ColumnDefinitions>
+
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="20" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+
+            <RowDefinition Height="20" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="1" Grid.Column="1" Text=" Tjossan" >
+           
+        </TextBlock>
+        <Button Name="button1" Click="ButtonOpenOFFileClick" Grid.Row="2" Grid.Column="1">Open OF file</Button>
+        <TextBox Name="TextBoxOFFile" Grid.Row="2" Grid.Column="2"/>
+
+        <Button Name="button2" Click="ButtonOpenPDDFileClick" Grid.Row="3" Grid.Column="1">Open PDD file</Button>
+        <TextBox Name="TextBoxPDDFile" Grid.Row="3" Grid.Column="2"/>
+        <TextBlock Name="PDDFields" Grid.Row="3" Grid.Column="4"/>
+
+        <Button Name="button3" Click="ButtonOpenProfFileClick" Grid.Row="4" Grid.Column="1">Open Profile file</Button>
+        <TextBox Name="TextBoxProfFile" Grid.Row="4" Grid.Column="2"/>
+        <TextBlock Name="ProfileFields" Grid.Row="4" Grid.Column="4"/>
+
+        <Button Name="button4" Click="ButtonOpenDiagFileClick" Grid.Row="5" Grid.Column="1">Open Diagonal file</Button>
+        <TextBox Name="TextBoxDiagFile" Grid.Row="5" Grid.Column="2"/>
+        
+        <!-- Save files -->
+
+        <Button Name="button5" Click="ButtonSavePDDadFileClick" Grid.Row="6" Grid.Column="1">Save SignalPDD file</Button>
+        <TextBox Name="PDDadFile" Grid.Row="6" Grid.Column="2"/>
+
+        <Button Name="button6" Click="ButtonSavePDDcrdFileClick" Grid.Row="7" Grid.Column="1">Save corrPDD file</Button>
+        <TextBox Name="PDDcrdFile" Grid.Row="7" Grid.Column="2"/>
+
+        <Button Name="button7" Click="ButtonSavePDDcsvFileClick" Grid.Row="8" Grid.Column="1">Save csvPDD file</Button>
+        <TextBox Name="PDDcsvFile" Grid.Row="8" Grid.Column="2"/>
+
+        <Button Name="button8" Click="ButtonSaveSignalProfFileClick" Grid.Row="9" Grid.Column="1">Save SignalProfile file</Button>
+        <TextBox Name="ProfSignalFile" Grid.Row="9" Grid.Column="2"/>
+
+        <Button Name="button9" Click="ButtonSaveCorrProfFileClick" Grid.Row="10" Grid.Column="1">Save corrProfile file</Button>
+        <TextBox Name="corrProfFile" Grid.Row="10" Grid.Column="2"/>
+
+        <Button Name="button10" Click="ButtonSaveCSVProfFileClick" Grid.Row="11" Grid.Column="1">Save csvProfile file</Button>
+        <TextBox Name="csvProfFile" Grid.Row="11" Grid.Column="2"/>
+
+
+
+    </Grid>
+</Window>
