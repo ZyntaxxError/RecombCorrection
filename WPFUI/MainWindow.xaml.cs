@@ -39,7 +39,7 @@ namespace WPFUI
         public MainWindow()
         {
             InitializeComponent();
-           DebugDefault10FFFData();                        //                    FOR DEBUGGING   Loads data for 10FFF
+           //DebugDefault10FFFData();                        //                    FOR DEBUGGING   Loads data for 10FFF
         }
         
         #region ButtonClick Methods Open files
