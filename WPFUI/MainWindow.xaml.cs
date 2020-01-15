@@ -131,7 +131,7 @@ namespace WPFUI
             if (result == true)
             {
                 string filenamePDD = dlg.FileName;
-                TextBoxPDDFile.Text = filenamePDD;
+                PDDadFile.Text = filenamePDD;
                 WritePDDFile(filenamePDD, "ad");
             }
         }
@@ -147,7 +147,7 @@ namespace WPFUI
             if (result == true)
             {
                 string filenamePDD = dlg.FileName;
-                TextBoxPDDFile.Text = filenamePDD;
+                PDDcrdFile.Text = filenamePDD;
                 WritePDDFile(filenamePDD, "crd");
             }
         }
@@ -163,7 +163,7 @@ namespace WPFUI
             if (result == true)
             {
                 string filenamePDD = dlg.FileName;
-                TextBoxPDDFile.Text = filenamePDD;
+                PDDcsvFile.Text = filenamePDD;
                 WritePDDFile(filenamePDD, "csv");
             }
         }
