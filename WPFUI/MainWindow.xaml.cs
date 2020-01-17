@@ -122,90 +122,36 @@ namespace WPFUI
 
         private void ButtonSavePDDadFileClick(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog
-            {
-                DefaultExt = ".asc",
-                Filter = "Ascii files (*.asc) |*.asc| Text files(*.txt) |*.txt"
-            };
-            Nullable<bool> result = dlg.ShowDialog();
-            if (result == true)
-            {
-                string filenamePDD = dlg.FileName;
-                PDDadFile.Text = filenamePDD;
-                WritePDDFile(filenamePDD, "ad");
-            }
+            SaveFile("ad", "PDD");
         }
 
         private void ButtonSavePDDcrdFileClick(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog
-            {
-                DefaultExt = ".asc",
-                Filter = "Ascii files (*.asc) |*.asc| Text files(*.txt) |*.txt"
-            };
-            Nullable<bool> result = dlg.ShowDialog();
-            if (result == true)
-            {
-                string filenamePDD = dlg.FileName;
-                PDDcrdFile.Text = filenamePDD;
-                WritePDDFile(filenamePDD, "crd");
-            }
+            SaveFile("crd", "PDD");
         }
 
         private void ButtonSavePDDcsvFileClick(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog
-            {
-                DefaultExt = ".asc",
-                Filter = "Ascii files (*.asc) |*.asc| Text files(*.txt) |*.txt"
-            };
-            Nullable<bool> result = dlg.ShowDialog();
-            if (result == true)
-            {
-                string filenamePDD = dlg.FileName;
-                PDDcsvFile.Text = filenamePDD;
-                WritePDDFile(filenamePDD, "csv");
-            }
+            SaveFile("csv", "PDD");
         }
 
         private void ButtonSaveSignalProfFileClick(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog
-            {
-                DefaultExt = ".asc",
-                Filter = "Ascii files (*.asc) |*.asc| Text files(*.txt) |*.txt"
-            };
-            Nullable<bool> result = dlg.ShowDialog();
-            if (result == true)
-            {
-                string filenameProf = dlg.FileName;
-                TextBoxPDDFile.Text = filenameProf;
-                WriteProfFile(filenameProf, "ad");
-            }
+            SaveFile("ad", "Profile");
         }
-
-
-
+      
         private void ButtonSaveCorrProfFileClick(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog
-            {
-                DefaultExt = ".asc",
-                Filter = "Ascii files (*.asc) |*.asc| Text files(*.txt) |*.txt"
-            };
-            Nullable<bool> result = dlg.ShowDialog();
-            if (result == true)
-            {
-                string filenameProf = dlg.FileName;
-                TextBoxProfFile.Text = filenameProf;
-                WriteProfFile(filenameProf, "crd");
-            }
+            SaveFile("crd", "Profile");
         }
-
-
 
         private void ButtonSaveCSVProfFileClick(object sender, RoutedEventArgs e)
         {
+            SaveFile("csv", "Profile");
+        }
+
+        private void SaveFile(string dataFormat, string measurementType)
+        {
             Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog
             {
                 DefaultExt = ".asc",
@@ -214,12 +160,31 @@ namespace WPFUI
             Nullable<bool> result = dlg.ShowDialog();
             if (result == true)
             {
-                string filenameProf = dlg.FileName;
-                TextBoxProfFile.Text = filenameProf;
-                WriteProfFile(filenameProf, "csv");
+                string fileName = dlg.FileName;
+                //.Text = fileName;
+                if (measurementType == "Profile")
+                    {
+                    WriteProfFile(fileName, dataFormat);
+                        switch (measurementType)
+                        {
+                        case "csv":
+                            csvProfFile.Text = fileName;
+                            break;
+                        case "crd":
+                            corrProfFile.Text = fileName;
+                            break;
+		                default:
+                            ProfSignalFile.Text = fileName;
+                            break;
+	                    }
+                    //  switch case csv etc och skriv i rätt ruta
+                } else if(measurementType == "PDD")
+                {
+                    WritePDDFile(fileName, dataFormat);
+                }
             }
+            
         }
-
 
         # endregion
 
