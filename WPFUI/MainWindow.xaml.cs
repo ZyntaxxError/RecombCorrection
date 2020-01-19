@@ -168,10 +168,10 @@ namespace WPFUI
                         switch (measurementType)
                         {
                         case "csv":
-                            csvProfFile.Text = fileName;
+                            ProfcsvFile.Text = fileName;
                             break;
                         case "crd":
-                            corrProfFile.Text = fileName;
+                            ProfcorrFile.Text = fileName;
                             break;
 		                default:
                             ProfSignalFile.Text = fileName;
@@ -181,6 +181,18 @@ namespace WPFUI
                 } else if(measurementType == "PDD")
                 {
                     WritePDDFile(fileName, dataFormat);
+                    switch (measurementType)
+                    {
+                        case "csv":
+                            PDDcsvFile.Text = fileName;
+                            break;
+                        case "crd":
+                            PDDcorrFile.Text = fileName;
+                            break;
+                        default:
+                            PDDSignalFile.Text = fileName;
+                            break;
+                    }
                 }
             }
             
