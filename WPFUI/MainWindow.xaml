@@ -35,7 +35,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="1" Grid.Column="1" Text=" Tjossan" >
+        <TextBlock Grid.Row="1" Grid.Column="1" Text=" Open files" >
            
         </TextBlock>
         <Button Name="button1" Click="ButtonOpenOFFileClick" Grid.Row="2" Grid.Column="1">Open OF file</Button>
@@ -53,24 +53,25 @@
         <TextBox Name="TextBoxDiagFile" Grid.Row="5" Grid.Column="2"/>
         
         <!-- Save files -->
+        <TextBlock Grid.Row="6" Grid.Column="1" Text=" Save files" />
 
-        <Button Name="button5" Click="ButtonSavePDDadFileClick" Grid.Row="6" Grid.Column="1">Save SignalPDD file</Button>
-        <TextBox Name="PDDSignalFile" Grid.Row="6" Grid.Column="2"/>
+        <Button Name="button5" Click="ButtonSavePDDadFileClick" Grid.Row="7" Grid.Column="1">Save SignalPDD file</Button>
+        <TextBox Name="PDDSignalFile" Grid.Row="7" Grid.Column="2"/>
 
-        <Button Name="button6" Click="ButtonSavePDDcrdFileClick" Grid.Row="7" Grid.Column="1">Save corrPDD file</Button>
-        <TextBox Name="PDDcorrFile" Grid.Row="7" Grid.Column="2"/>
+        <Button Name="button6" Click="ButtonSavePDDcrdFileClick" Grid.Row="8" Grid.Column="1">Save corrPDD file</Button>
+        <TextBox Name="PDDcorrFile" Grid.Row="8" Grid.Column="2"/>
 
-        <Button Name="button7" Click="ButtonSavePDDcsvFileClick" Grid.Row="8" Grid.Column="1">Save csvPDD file</Button>
-        <TextBox Name="PDDcsvFile" Grid.Row="8" Grid.Column="2"/>
+        <Button Name="button7" Click="ButtonSavePDDcsvFileClick" Grid.Row="9" Grid.Column="1">Save csvPDD file</Button>
+        <TextBox Name="PDDcsvFile" Grid.Row="9" Grid.Column="2"/>
 
-        <Button Name="button8" Click="ButtonSaveSignalProfFileClick" Grid.Row="9" Grid.Column="1">Save SignalProfile file</Button>
-        <TextBox Name="ProfSignalFile" Grid.Row="9" Grid.Column="2"/>
+        <Button Name="button8" Click="ButtonSaveSignalProfFileClick" Grid.Row="10" Grid.Column="1">Save SignalProfile file</Button>
+        <TextBox Name="ProfSignalFile" Grid.Row="10" Grid.Column="2"/>
 
-        <Button Name="button9" Click="ButtonSaveCorrProfFileClick" Grid.Row="10" Grid.Column="1">Save corrProfile file</Button>
-        <TextBox Name="ProfcorrFile" Grid.Row="10" Grid.Column="2"/>
+        <Button Name="button9" Click="ButtonSaveCorrProfFileClick" Grid.Row="11" Grid.Column="1">Save corrProfile file</Button>
+        <TextBox Name="ProfcorrFile" Grid.Row="11" Grid.Column="2"/>
 
-        <Button Name="button10" Click="ButtonSaveCSVProfFileClick" Grid.Row="11" Grid.Column="1">Save csvProfile file</Button>
-        <TextBox Name="ProfcsvFile" Grid.Row="11" Grid.Column="2"/>
+        <Button Name="button10" Click="ButtonSaveCSVProfFileClick" Grid.Row="12" Grid.Column="1">Save csvProfile file</Button>
+        <TextBox Name="ProfcsvFile" Grid.Row="12" Grid.Column="2"/>
 
 
 

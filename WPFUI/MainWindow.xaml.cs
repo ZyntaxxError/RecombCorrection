@@ -14,12 +14,25 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
 namespace WPFUI
 {
     /// <summary>
-    /// Takes depth doses in MyQA Accept .asc format and normalises signal to SSD 95, 5cm depth by relative output factors.
+    /// Takes depth doses and profiles in MyQA Accept .asc format and normalises signal to SSD 95, 5cm depth by relative output factors.
+    /// Recombination correction is made by applying a linear fit (more documentátion needed)
+    /// Recombination corrected data can be saved in the same format to read back into MyQa accept, signal normalized data****  
+    /// and also in easy to inspect csv format including  
+    /// RelDose         raw data from supplied asc files
+    /// NormSignal      renormalized data to reference situation
+    /// RecombCorr      the applied correction for each point
+    /// corrSignal      
+    /// corrRelDose    
+    /// 
+    /// Note: no correction is made for the recombination differences i output factors
+    /// Prerequisite   all data use the same SSD
+    /// 
+    /// Discussion about the introduced error if no correction is applied. depends on chosen reference in eclipse?
     /// </summary>
+    /// TODO: in csv file print the used linear equation for correction
     public partial class MainWindow : Window
     {
         List<OF> OFList = new List<OF>();           // correct place to instantiate list of OF?
@@ -113,6 +126,7 @@ namespace WPFUI
         }
 
 
+
         # endregion
 
 
@@ -150,6 +164,7 @@ namespace WPFUI
             SaveFile("csv", "Profile");
         }
 
+        # endregion
         private void SaveFile(string dataFormat, string measurementType)
         {
             Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog
@@ -161,7 +176,7 @@ namespace WPFUI
             if (result == true)
             {
                 string fileName = dlg.FileName;
-                //.Text = fileName;
+                //.Text = fileName;    how to send reference to correct text box? 
                 if (measurementType == "Profile")
                     {
                     WriteProfFile(fileName, dataFormat);
@@ -177,7 +192,7 @@ namespace WPFUI
                             ProfSignalFile.Text = fileName;
                             break;
 	                    }
-                    //  switch case csv etc och skriv i rätt ruta
+                    //  switch case csv etc to display file name in correct text box
                 } else if(measurementType == "PDD")
                 {
                     WritePDDFile(fileName, dataFormat);
@@ -198,7 +213,6 @@ namespace WPFUI
             
         }
 
-        # endregion
 
 
         /// <summary>
