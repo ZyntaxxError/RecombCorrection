@@ -4,35 +4,28 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 namespace WPFUI
 {
     /// <summary>
     /// Takes depth doses and profiles in MyQA Accept .asc format and normalises signal to SSD 95, 5cm depth by relative output factors.
-    /// Recombination correction is made by applying a linear fit (more documentátion needed)
-    /// Recombination corrected data can be saved in the same format to read back into MyQa accept, signal normalized data****  
-    /// and also in easy to inspect csv format including  
+    /// Recombination correction is made by applying a linear fit of normalised signal versus recombination correction 
+    /// Recombination corrected data can be saved in the same format to read back into MyQa accept, also signal normalized data (NormSignal) can be saved in.asc
+    /// to quickly be able to check the normalisation in MyQA Accept. 
+    /// PDD:s and profiles can also be saved in easy to inspect csv format (for plotting in excel etc.) including  
     /// RelDose         raw data from supplied asc files
-    /// NormSignal      renormalized data to reference situation
-    /// RecombCorr      the applied correction for each point
-    /// corrSignal      
-    /// corrRelDose    
+    /// NormSignal      renormalized signal data, where 100 equals signal @ SSD 95, 5 cm depth 10x10
+    /// RecombCorr      the recombination correction for each point
+    /// corrSignal      corrected signal
+    /// corrRelDose     renormalised corrected relative dose
     /// 
-    /// Note: no correction is made for the recombination differences i output factors
-    /// Prerequisite   all data use the same SSD
+    /// Note: no correction is made for the recombination differences i output factors, only amounts to appr. 0,16% between field size 7x7 and 40x40
+    /// Prerequisite :  all data use the same SSD, output factors normalised to ref situation supplied
     /// 
     /// Discussion about the introduced error if no correction is applied. depends on chosen reference in eclipse?
     /// </summary>
     /// TODO: in csv file print the used linear equation for correction
+    /// TODO: can not open profiles and diagonales simultainously (wtf, hur stavas detta)
     public partial class MainWindow : Window
     {
         List<OF> OFList = new List<OF>();           // correct place to instantiate list of OF?
@@ -41,14 +34,11 @@ namespace WPFUI
         string[] fileHeaderPDD = new string[2];
         string[] fileHeaderProf = new string[2];
 
-        static double RecombinationK = 0.000177;
+        static double RecombinationK = 0.0001771;
         static double RecombinationM = 1.0006;
         
 
-
-
-
-
+                     
         public MainWindow()
         {
             InitializeComponent();
@@ -66,7 +56,7 @@ namespace WPFUI
                 Filter = "Text files(*.txt) |*.txt|Ascii files (*.asc) |*.asc"
             };
             Nullable<bool> result = dlg.ShowDialog();   // Display OpenFileDialog by calling ShowDialog method
-            if (result == true)  // Get the selected file name and display in a TextBox and read data to objectlist OF
+            if (result == true)                         // Get the selected file name and display in a TextBox and read data to objectlist OF
             {
                 string filenameOF = dlg.FileName;
                 TextBoxOFFile.Text = filenameOF;
@@ -594,7 +584,7 @@ namespace WPFUI
 
         private void ProfileAbsDose()
         {
-            // Create new list of doubles for absolute dose (cGy/100MU) for every profile object in profileList
+            // Create new list of doubles for absolute dose (cGy/100MU) (what... nah renormalised signal...) for every profile object in profileList
             //if not exact number found
             //    get index closest below and index -1
             //    make a linear interpolation
