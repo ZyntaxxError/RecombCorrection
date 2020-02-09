@@ -8,41 +8,50 @@ using System.Windows;
 namespace WPFUI
 {
     /// <summary>
-    /// Takes depth doses and profiles in MyQA Accept .asc format and normalises signal to SSD 95, 5cm depth by relative output factors.
+    /// Takes depth doses and profiles in MyQA Accept .asc format (RFA300 ASCII Measurement Dump ( BDS format ))
+    /// and normalises signal to reference situation by relative output factors.
     /// Recombination correction is made by applying a linear fit of normalised signal versus recombination correction 
     /// Recombination corrected data can be saved in the same format to read back into MyQa accept, also signal normalized data (NormSignal) can be saved in.asc
     /// to quickly be able to check the normalisation in MyQA Accept. 
     /// PDD:s and profiles can also be saved in easy to inspect csv format (for plotting in excel etc.) including  
     /// RelDose         raw data from supplied asc files
-    /// NormSignal      renormalized signal data, where 100 equals signal @ SSD 95, 5 cm depth 10x10
+    /// NormSignal      renormalized signal data, where 100 equals signal @ reference situation
     /// RecombCorr      the recombination correction for each point
     /// corrSignal      corrected signal
     /// corrRelDose     renormalised corrected relative dose
     /// 
     /// Note: no correction is made for the recombination differences i output factors, only amounts to appr. 0,16% between field size 7x7 and 40x40
-    /// Prerequisite :  all data use the same SSD, output factors normalised to ref situation supplied
+    /// Prerequisite :  _all_ data use the same SSD, output factors normalised to ref situation, 
+    /// recombination fit with x-axis normalised to 100 @ reference condition, y-axis the recombination factor (kS)
     /// 
     /// Discussion about the introduced error if no correction is applied. depends on chosen reference in eclipse?
+    /// Uncertainties about raw data including the difference in temp and pressure, daily calibration of mashine etc
     /// </summary>
     /// TODO: in csv file print the used linear equation for correction
-    /// TODO: can not open profiles and diagonales simultainously (wtf, hur stavas detta)
+    /// TODO: can not open profiles and diagonales simultaneously....
+    /// TODO: If the file already exists, the new text appends... wtf
+    /// TODO: assumes the pdd and profiles are normalised to dmax/CAX? Calculation works regardless as normalisation is done at the depth specified in the output factor file. Renormalisation should perhaps be done when writing to csv
+    /// TODO Systemtest , what happens if reopen a pdd file... have to clear all data for both pdd:s and profiles...
+    /// TODO Open pdd should be inactive utntil OF file opened, same goes for profiles
+    /// TODO extract method PDDoperations from read PDD
     public partial class MainWindow : Window
     {
-        List<OF> OFList = new List<OF>();           // correct place to instantiate list of OF?
+        List<OF> OFList = new List<OF>();           // correct place to instantiate list of OF?    NEJ inte för profiler***********!!!!!!!!!! eller...
         List<PDD> PDDList = new List<PDD>();
         List<Profile> profileList = new List<Profile>();
+        List<Profile> diagList = new List<Profile>();
         string[] fileHeaderPDD = new string[2];
         string[] fileHeaderProf = new string[2];
 
         static double RecombinationK = 0.0001771;
-        static double RecombinationM = 1.0006;
+        static double RecombinationM = 1.0006;              //Should really be 1, i.e. no recombination correction when the signal is 0.
         
 
                      
         public MainWindow()
         {
             InitializeComponent();
-           //DebugDefault10FFFData();                        //                    FOR DEBUGGING   Loads data for 10FFF
+           //DebugDefault10FFFData();                        //                    ***************FOR DEBUGGING   Loads data for 10FFF*******************
         }
         
         #region ButtonClick Methods Open files
@@ -60,7 +69,7 @@ namespace WPFUI
             {
                 string filenameOF = dlg.FileName;
                 TextBoxOFFile.Text = filenameOF;
-                ReadOFFile(filenameOF );                
+                ReadOFFile(filenameOF);                
                 OFList.Sort((x, y) => x.FieldSizeX.CompareTo(y.FieldSizeX));
             }
         }
@@ -78,7 +87,6 @@ namespace WPFUI
                 string filenamePDD = dlg.FileName;
                 TextBoxPDDFile.Text = filenamePDD;
                 ReadPDDFile(filenamePDD);
-                //PDDList.Sort((x, y) => x.FieldSizeX.CompareTo(y.FieldSizeX));  // can't sort unless change measurement number in header
             }
         }
 
@@ -95,6 +103,7 @@ namespace WPFUI
             {
                 string filenameProf = dlg.FileName;
                 TextBoxProfFile.Text = filenameProf;
+   //             List<Profile> profileList = new List<Profile>();
                 ReadProfFile(filenameProf);
             }
         }
@@ -111,6 +120,7 @@ namespace WPFUI
             {
                 string filenameDiag = dlg.FileName;
                 TextBoxDiagFile.Text = filenameDiag;
+  //              List<Profile> diagList = new List<Profile>();
                 ReadProfFile(filenameDiag);
             }
         }
@@ -217,33 +227,30 @@ namespace WPFUI
 
             for (int i = 1; i < lines.Count(); i++)
             {
-                OFList.Add(new OF());
-                string[] ofPropsAsText = lines[i].Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                OFList[k].SSD = int.Parse(ofPropsAsText[0]);
-                OFList[k].FieldSizeX = int.Parse(ofPropsAsText[1]);
-                OFList[k].FieldSizeY = int.Parse(ofPropsAsText[2]);
-                OFList[k].PointDepth = int.Parse(ofPropsAsText[3]);
-                OFList[k].PointRelDose = double.Parse(ofPropsAsText[4]);
+                if (!String.IsNullOrWhiteSpace(lines[i])){
+                    OFList.Add(new OF());
+                    string[] ofPropsAsText = lines[i].Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    OFList[k].SSD = int.Parse(ofPropsAsText[0]);
+                    OFList[k].FieldSizeX = int.Parse(ofPropsAsText[1]);
+                    OFList[k].FieldSizeY = int.Parse(ofPropsAsText[2]);
+                    OFList[k].PointDepth = int.Parse(ofPropsAsText[3]);
+                    OFList[k].PointRelDose = double.Parse(ofPropsAsText[4]);                    
+                }
                 k++;
             }
         }
+
 
         private void ReadPDDFile(string filenamePDD)
         {
 
             // read all lines into array of strings; pddFileTextArray
             string[] pddFileTextArray = System.IO.File.ReadAllLines(filenamePDD);
-            #region PDD file header
             // assumes always 2 lines of text as file header (not belonging to specific measurement)           
-            
             for (int i = 0; i < 2; i++)
             {
-                fileHeaderPDD[i] = pddFileTextArray[i];
+                fileHeaderPDD[i] = pddFileTextArray[i];           // number of measurements in file must be updated when saving
             }
-
-            #endregion file header
-
-
             #region PDD file read and convert to list of PDDList objects
 
             int pddFileIndex = 2;
@@ -253,13 +260,12 @@ namespace WPFUI
             List<double> pddMcoordY = new List<double>();
             List<double> pddMcoordZ = new List<double>();
             List<double> pddMrelDose = new List<double>();
-            var summaryPDD = new StringBuilder();
-            
+            //var summaryPDD = new StringBuilder();
+
             int PDDIndex = 0;
             bool endOfTextFile = false;
 
             while (!endOfTextFile)
-
             {
                 pddMeasurementHeader.Clear();
                 pddMeasurement.Clear();
@@ -273,18 +279,15 @@ namespace WPFUI
 
                 bool endOfMeasurement = false;
                 while (!endOfMeasurement)
-                {
 
+                {
                     if (pddFileTextArray[pddFileIndex].Contains(":EOM  # End of Measurement"))
                     {
                         endOfMeasurement = true;
                         if (pddFileTextArray[pddFileIndex + 1].Contains(":EOF")) { endOfTextFile = true; }   // stops the while-loop if EOF found
-                        PDDList.Add(new PDD());                                                             // makes new empty object in PDDList for every EOM found
-
                     }
                     else if (pddFileTextArray[pddFileIndex].Contains("="))
                     {
-                        //pddMeasurement.Add(pddFileTextArray[pddFileIndex]);
                         double[] coordandDoseAsNumbers = GetCoordinatesAndDose(pddFileTextArray[pddFileIndex]);
                         pddMcoordX.Add(coordandDoseAsNumbers[0]);
                         pddMcoordY.Add(coordandDoseAsNumbers[1]);
@@ -297,44 +300,69 @@ namespace WPFUI
                     }
                     pddFileIndex++;
                 }
-                // efter detta finns temporär enskiljd pdd-header och pdd-data som kan användas och sen clearas (redan gjort ovan ) tills EOF end of file läses
 
-                PDDList[PDDIndex].HeaderText = new List<string>(pddMeasurementHeader);  // had to set new otherwise only references                
-                PDDList[PDDIndex].CoordX = new List<double>(pddMcoordX);
-                PDDList[PDDIndex].CoordY = new List<double>(pddMcoordY);
-                PDDList[PDDIndex].CoordZ = new List<double>(pddMcoordZ);
-                PDDList[PDDIndex].RelDose = new List<double>(pddMrelDose);
+                // after this there's temporary pdd-header and pdd-data that can be used and cleared until EOF end of file
 
                 int fSZindex = pddMeasurementHeader.FindIndex(x => x.StartsWith("%FSZ"));
                 string[] rowFSZ = pddMeasurementHeader[fSZindex].Split('\t');
-                PDDList[PDDIndex].FieldSizeX = int.Parse(rowFSZ[1]);
-                PDDList[PDDIndex].FieldSizeY = int.Parse(rowFSZ[2]);
+                int FieldSX = int.Parse(rowFSZ[1]);
+                int FieldSY = int.Parse(rowFSZ[2]);
 
-                PDDIndex++;
+                if (OFList.FindIndex(a => a.FieldSizeX == FieldSX && a.FieldSizeY == FieldSY) >= 0) // Before making new PDD-object check if the fieldsize is included in OF
+                {
+                    PDDList.Add(new PDD());
+
+                    PDDList[PDDIndex].FieldSizeX = FieldSX;
+                    PDDList[PDDIndex].FieldSizeY = FieldSY;
+
+                    PDDList[PDDIndex].HeaderText = new List<string>(pddMeasurementHeader);  // had to set new otherwise only references                
+                    PDDList[PDDIndex].CoordX = new List<double>(pddMcoordX);
+                    PDDList[PDDIndex].CoordY = new List<double>(pddMcoordY);
+                    PDDList[PDDIndex].CoordZ = new List<double>(pddMcoordZ);
+                    PDDList[PDDIndex].RelDose = new List<double>(pddMrelDose);
+
+                    PDDIndex++;
+                };
             }
 
+            PDDList.Sort((x, y) => x.FieldSizeX.CompareTo(y.FieldSizeX));  // can't sort unless change measurement number in header
 
-            // Create new list of doubles for absolute dose (cGy/100MU) or more correct normalised signal, recombination corr and correctedrenormalised PDD for every PDD object in PDDList
+            for (int i = 0; i < PDDList.Count(); i++)
+            {
+                // in the text "# Measurement number 	1",   replace the number with correct value, hardcoded index due to known format RFA
+                string[] measurementNumberAsText = PDDList[i].HeaderText[3].Split('\t');
+                PDDList[i].HeaderText[3] = PDDList[i].HeaderText[3].Replace(measurementNumberAsText[1], Convert.ToString(i + 1));
+            }
+
+            PDDOperations();
+        }
+        #endregion
+
+
+
+
+
+        private void PDDOperations()
+        {
+
+            // Create new list of doubles for absolute dose (cGy/100MU) or more correct normalised signal, recombination correction and corrected renormalised PDD for every PDD object in PDDList
             int indexOF = 0;
             int indexDepthToNormalise = 0;
             foreach (PDD depthDose in PDDList)
             {
-                // indexOF = OFList.FindIndex(a => a.FieldSizeX == depthDose.FieldSizeX);  // get the index of OF to use NOTE only FSZ_X so far...
-                //indexDepthToNormalise = depthDose.CoordZ.FindIndex(b => b. == OFList[indexOF].PointRelDose);  // get the index of OF to use NOTE only FSZ_X so far...
                 depthDose.AbsDose = new List<double>();
                 depthDose.RecombCorr = new List<double>();
                 depthDose.CorrAbsDose = new List<double>();
                 depthDose.CorrRelDose = new List<double>();
-                indexOF = OFList.FindIndex(a => a.FieldSizeX == depthDose.FieldSizeX);  // get the index of OF to use NOTE only FSZ_X so far...
-                indexDepthToNormalise = depthDose.CoordZ.FindIndex(b => b.Equals(OFList[indexOF].PointDepth));  // works IF exact depth exists in depth dose....!!
+                indexOF = OFList.FindIndex(a => a.FieldSizeX == depthDose.FieldSizeX && a.FieldSizeY == depthDose.FieldSizeY);  // get the index of OF to use
+                indexDepthToNormalise = depthDose.CoordZ.FindIndex(b => b.Equals(OFList[indexOF].PointDepth));  // works IF exact depth exists in depth dose...
                 Console.WriteLine(indexOF + "  " + OFList[indexOF].FieldSizeX + " " + depthDose.FieldSizeX);
                 foreach (double relD in depthDose.RelDose)
                 {
-                    depthDose.AbsDose.Add(100 * relD * OFList[indexOF].PointRelDose / depthDose.RelDose[indexDepthToNormalise]);
+                    depthDose.AbsDose.Add(100 * relD * OFList[indexOF].PointRelDose / depthDose.RelDose[indexDepthToNormalise]); // renormalises the depthdose to depth of OF and applies the output factor
                     depthDose.RecombCorr.Add(depthDose.AbsDose[depthDose.AbsDose.Count()-1] * RecombinationK + RecombinationM);
                     depthDose.AbsDose.Max();
                 }
-
                 for (int i = 0; i < depthDose.AbsDose.Count(); i++)
                 {
                     depthDose.CorrAbsDose.Add(depthDose.AbsDose[i] * depthDose.RecombCorr[i]);
@@ -346,13 +374,15 @@ namespace WPFUI
                 {
                     depthDose.CorrRelDose.Add(100 * depthDose.CorrAbsDose[i] / normValue);
                 }
-                summaryPDD.Append(depthDose.FieldSizeX).Append("x").Append(depthDose.FieldSizeY).Append(" ");
-
-                
             }
-            #endregion
-            PDDFields.Text = summaryPDD.ToString();
         }
+
+
+
+
+
+        
+
 
 
 
@@ -362,18 +392,10 @@ namespace WPFUI
             // read all lines into array of strings; pddFileTextArray
             string[] profileFileTextArray = System.IO.File.ReadAllLines(FileName);
 
-            #region Profile file header
-
             for (int i = 0; i < 2; i++)
             {
                 fileHeaderProf[i] = profileFileTextArray[i];
             }
-            string[] nrOfProfilesAsText = fileHeaderProf[0].Split(' ');
-            //int nrOfProfiles = int.Parse(nrOfProfilesAsText[1]);
-            //Console.WriteLine("number of Profiles is : {0}", nrOfProfiles);
-
-            #endregion file header
-
 
             #region Profile file read and convert to list of ProfileList objects
 
@@ -399,7 +421,7 @@ namespace WPFUI
                 profileMcoordZ.Clear();
                 profileMrelDose.Clear();
 
-                // the rest of profileFileTextArray starts at index 2, make list of PDD objects
+                // the rest of profileFileTextArray starts at index 2, make list of Profile objects
                 // ************************************ fill in properties of the pdd in list, read header to pdd.headertext
 
                 bool endOfMeasurement = false;
@@ -410,7 +432,7 @@ namespace WPFUI
                     {
                         endOfMeasurement = true;
                         if (profileFileTextArray[profileFileIndex + 1].Contains(":EOF")) { endOfTextFile = true; }   // stops the while-loop if EOF found
-                        profileList.Add(new Profile());                                                            // makes new empty object in PDDList for every EOM found                        
+                       
 
                     }
                     else if (profileFileTextArray[profileFileIndex].Contains("="))
@@ -430,33 +452,99 @@ namespace WPFUI
                 }
                 // efter detta finns temporär enskiljd pdd-header och pdd-data som kan användas och sen clearas (redan gjort ovan ) tills EOF end of file läses
 
-                profileList[profileIndex].HeaderText = new List<string>(profileMeasurementHeader);  // had to set new otherwise only references                
-                profileList[profileIndex].CoordX = new List<double>(profileMcoordX);
-                profileList[profileIndex].CoordY = new List<double>(profileMcoordY);
-                profileList[profileIndex].CoordZ = new List<double>(profileMcoordZ);
-                profileList[profileIndex].RelDose = new List<double>(profileMrelDose);
-
                 int fSZindex = profileMeasurementHeader.FindIndex(x => x.StartsWith("%FSZ"));
                 string[] rowFSZ = profileMeasurementHeader[fSZindex].Split('\t');
-                profileList[profileIndex].FieldSizeX = int.Parse(rowFSZ[1]);
-                profileList[profileIndex].FieldSizeY = int.Parse(rowFSZ[2]);
-                profileList[profileIndex].ProfileDepth = profileList[profileIndex].CoordZ[0];
-                summaryProf.Append(profileList[profileIndex].FieldSizeX).Append("x").Append(profileList[profileIndex].FieldSizeY).Append(" ");
+                int FieldSX = int.Parse(rowFSZ[1]);
+                int FieldSY = int.Parse(rowFSZ[2]);
 
-                profileIndex++;
+
+                if (PDDList.FindIndex(a => a.FieldSizeX == FieldSX && a.FieldSizeY == FieldSY) >= 0) // Before making new Profile-object check if the fieldsize is included in DepthDose
+                {
+                    profileList.Add(new Profile());                                                     // makes new empty object in ProfileList for every EOM found 
+
+                    profileList[profileIndex].HeaderText = new List<string>(profileMeasurementHeader);  // had to set new otherwise only references                
+                    profileList[profileIndex].CoordX = new List<double>(profileMcoordX);
+                    profileList[profileIndex].CoordY = new List<double>(profileMcoordY);
+                    profileList[profileIndex].CoordZ = new List<double>(profileMcoordZ);
+                    profileList[profileIndex].RelDose = new List<double>(profileMrelDose);
+
+                    profileList[profileIndex].FieldSizeX = FieldSX;
+                    profileList[profileIndex].FieldSizeY = FieldSY;
+                    profileList[profileIndex].ProfileDepth = profileList[profileIndex].CoordZ[0];
+
+                    profileIndex++;
+                }
             }
 
-            ProfileAbsDose();  // call method to create relative signal
+            // Update the fileheader stating the number of measurements with the correct value
+            int actualNoOfProfiles = profileList.Count();
+            string[] nrOfProfilesAsText = fileHeaderProf[0].Split('\t');
+            fileHeaderProf[0] = fileHeaderProf[0].Replace(nrOfProfilesAsText[1], Convert.ToString(actualNoOfProfiles));
 
-            ProfileFields.Text = summaryProf.ToString();
+            //Sort by fieldsize and depth, ascending, and update the measurement number in the measurement header of each profile
 
+            profileList = profileList.OrderBy(x => x.FieldSizeX).ThenBy(x => x.ProfileDepth).ToList();
+                       
+            for (int i = 0; i < profileList.Count(); i++)
+            {
+                // in the text "# Measurement number 	1",   replace the number with correct value, hardcoded index due to known format RFA
+                string[] measurementNumberAsText = profileList[i].HeaderText[3].Split('\t');
+                profileList[i].HeaderText[3] = profileList[i].HeaderText[3].Replace(measurementNumberAsText[1], Convert.ToString(i + 1));
+            }
+
+            ProfileOperations();  // call method to create recombination correction etc. for the profiles
             #endregion
+        }
 
 
 
+        private void ProfileOperations()
+        {
+            //      Create new list of doubles for absolute dose (cGy/100MU) (really renormalised signal...) for every profile object in profileList
+            //      if exact depth found in depth dose, get PDD data for profile normalisation
+            //      else
+            //      get index closest below and above and make a linear interpolation
 
+            double profNormValue;
+            int indexDD = 0;
 
+            foreach (Profile profile in profileList)
+            {
+                profile.AbsDose = new List<double>();
+                profile.RecombCorr = new List<double>();
+                profile.CorrAbsDose = new List<double>();
+                profile.CorrRelDose = new List<double>();
+                indexDD = PDDList.FindIndex(a => a.FieldSizeX == profile.FieldSizeX && a.FieldSizeY == profile.FieldSizeY);  // get the index of depth dose to use
+                
+                if (PDDList[indexDD].CoordZ.Contains(profile.ProfileDepth))
+                {
+                    int doseValueIndex = PDDList[indexDD].CoordZ.FindIndex(a => a == profile.ProfileDepth);
+                    profNormValue = PDDList[indexDD].AbsDose[doseValueIndex];
+                }
+                else
+                {
+                    int ipr = PDDList[indexDD].CoordZ.FindIndex(m => profile.ProfileDepth >= m);
+                    profNormValue = PDDList[indexDD].AbsDose[ipr - 1] + (profile.ProfileDepth - PDDList[indexDD].CoordZ[ipr - 1]) * (PDDList[indexDD].AbsDose[ipr] - PDDList[indexDD].AbsDose[ipr - 1]) / (PDDList[indexDD].CoordZ[ipr] - PDDList[indexDD].CoordZ[ipr - 1]);
+                }
 
+                foreach (double relD in profile.RelDose)
+                {
+                    profile.AbsDose.Add(relD * profNormValue / 100);
+                }
+                
+                for (int i = 0; i < profile.RelDose.Count(); i++) 
+                {
+                    profile.RecombCorr.Add(profile.AbsDose[i] * RecombinationK + RecombinationM);
+                    profile.CorrAbsDose.Add(profile.AbsDose[i] * profile.RecombCorr[i]);
+                }
+
+                double normValue = profile.CorrAbsDose.Max();
+
+                for (int i = 0; i < profile.RelDose.Count(); i++)
+                {
+                    profile.CorrRelDose.Add(100 * profile.CorrAbsDose[i] / normValue);
+                }
+            }
         }
 
 
@@ -470,7 +558,7 @@ namespace WPFUI
             using (StreamWriter writetext = new StreamWriter(@fileName, true))
             {
                 writetext.WriteLine(fileHeaderPDD[0]);
-                writetext.WriteLine(fileHeaderProf[1]);
+                writetext.WriteLine(fileHeaderPDD[1]);
                 foreach (PDD DepthDose in PDDList)
                 {
                     // Write header info for each scan
@@ -528,6 +616,7 @@ namespace WPFUI
             {
                 writetext.WriteLine(fileHeaderProf[0]);
                 writetext.WriteLine(fileHeaderProf[1]);
+                MessageBox.Show(fileHeaderProf[0]);
                 foreach (Profile profile in profileList)
                 {
                     // Write header info for each scan
@@ -582,77 +671,6 @@ namespace WPFUI
 
 
 
-        private void ProfileAbsDose()
-        {
-            // Create new list of doubles for absolute dose (cGy/100MU) (what... nah renormalised signal...) for every profile object in profileList
-            //if not exact number found
-            //    get index closest below and index -1
-            //    make a linear interpolation
-            //    else
-            //    get index for exact number
-            double profNormValue;
-            int indexDD = 0;
-            //int indexDepthToNormalise = 0;
-
-            foreach (Profile profile in profileList)
-            {
-
-                profile.AbsDose = new List<double>();
-                profile.RecombCorr = new List<double>();
-                profile.CorrAbsDose = new List<double>();
-                profile.CorrRelDose = new List<double>();
-                indexDD = PDDList.FindIndex(a => a.FieldSizeX == profile.FieldSizeX && a.FieldSizeY == profile.FieldSizeY);  // get the index of depth dose to use NOTE only FSZ_X so far...
-
-
-                // ***************************************       eooro
-
-
-
-                if (PDDList[indexDD].CoordZ.Contains(profile.ProfileDepth))
-                {
-                    int doseValueIndex = PDDList[indexDD].CoordZ.FindIndex(a => a == profile.ProfileDepth);
-                    profNormValue = PDDList[indexDD].AbsDose[doseValueIndex];
-                    Console.WriteLine("Could find exact value" + profile.ProfileDepth);
-
-                }
-                else
-                {
-                    int ipr = PDDList[indexDD].CoordZ.FindIndex(m => profile.ProfileDepth >= m);
-                    //Console.WriteLine("Could not find exact value");
-                    //Console.WriteLine(PDDList[indexDD].CoordZ[ipr]);
-                    //Console.WriteLine(PDDList[indexDD].CoordZ[ipr - 1]);
-                    profNormValue = PDDList[indexDD].AbsDose[ipr - 1] + (profile.ProfileDepth - PDDList[indexDD].CoordZ[ipr - 1]) * (PDDList[indexDD].AbsDose[ipr] - PDDList[indexDD].AbsDose[ipr - 1]) / (PDDList[indexDD].CoordZ[ipr] - PDDList[indexDD].CoordZ[ipr - 1]);
-                }
-
-                foreach (double relD in profile.RelDose)
-                {
-                    profile.AbsDose.Add(relD * profNormValue / 100);
-
-
-                }
-                //profile.RecombCorr.Add(profile.AbsDose[profile.AbsDose.Count() - 1] * RecombinationK + RecombinationM);
-                for (int i = 0; i < profile.RelDose.Count(); i++)    //   for (int i = 0; i < profile.AbsDose.Count(); i++)
-                {
-                    profile.RecombCorr.Add(profile.AbsDose[i] * RecombinationK + RecombinationM);
-                    profile.CorrAbsDose.Add(profile.AbsDose[i] * profile.RecombCorr[i]);
-                }
-
-
-                // Normalise separately to avoid finding the index of max
-                double normValue = profile.CorrAbsDose.Max();
-
-                for (int i = 0; i < profile.RelDose.Count(); i++)
-                {
-                    profile.CorrRelDose.Add(100 * profile.CorrAbsDose[i] / normValue);
-                }
-
-
-
-
-
-
-            }
-        }
 
 
 
