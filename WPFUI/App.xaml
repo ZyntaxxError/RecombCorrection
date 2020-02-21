@@ -4,13 +4,25 @@
              xmlns:local="clr-namespace:WPFUI"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <Style TargetType="TextBlock">
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+
+
+
+
+
+
+
+        <!--Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="Black" />
             <Setter Property="FontFamily" Value="Segoe UI" />
             <Setter Property="FontSize" Value="14" />
-        </Style>
+        </>
         <Style TargetType="Grid">
             <Setter Property="Margin" Value="10" />
-        </Style>
+        </Style-->
     </Application.Resources>
 </Application>

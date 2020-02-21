@@ -1,0 +1,57 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    
+    <!-- TextBlock and Titles -->
+
+    <Style TargetType="TextBlock">
+        <Setter Property="FontSize" Value="15"></Setter>
+    </Style>
+
+
+    <Style x:Key="Title1" TargetType="TextBlock">                          
+        <Setter Property="FontSize" Value="20"></Setter>
+    </Style>
+
+    <Style x:Key="Title2" TargetType="TextBlock">                           
+        <Setter Property="FontSize" Value="18"></Setter>
+        <Setter Property="FontWeight" Value="DemiBold"></Setter>
+    </Style>
+    
+    <Style x:Key="Title3" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="16"></Setter>
+        <Setter Property="FontStyle" Value="Italic"></Setter>
+        <Setter Property="FontWeight" Value="DemiBold"></Setter>
+    </Style>
+
+    <!-- TextBox -->
+
+    <Style TargetType="TextBox">
+        <Setter Property="FontSize" Value="16"></Setter>
+        <Setter Property="Margin" Value="0, 2"></Setter>
+        <!--Setter Property="Background" Value="#454545"</Setter>-->
+    </Style>
+
+    <!-- Button -->
+
+    <Style TargetType="Button">
+        <!--Setter Property="Background" Value="#CF6679"></-->
+        <Setter Property="FontFamily" Value="Seguea"></Setter>
+        <Setter Property="FontSize" Value="14"></Setter>
+        <Setter Property="Margin" Value="0, 2"></Setter>
+    </Style>
+    <Style x:Key="ButtonS" TargetType="Button">
+        <Setter Property="Background" Value="DarkOrange"></Setter>
+    </Style>
+    
+    <!--#region   DARK MODE-->
+    <!-- dark mode error color  #CF6679 -->
+    <!-- dark gray color  #303030 
+    <Style TargetType="TextBox">
+        <Setter Property="FontSize" Value="16"></Setter>
+        <Setter Property="Margin" Value="0, 2"></Setter>
+        <Setter Property="Background" Value="#454545"></Setter>
+    </Style>
+    -->
+
+</ResourceDictionary>
